@@ -1,0 +1,25 @@
+{
+  "name": "@restaurant/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/generated/index.ts",
+  "types": "./src/generated/index.ts",
+  "exports": {
+    ".": "./src/generated/index.ts"
+  },
+  "scripts": {
+    "codegen": "orval --config orval.config.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"lint: no eslint configured yet\"",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.40.0",
+    "axios": "^1.7.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "orval": "^7.0.0",
+    "typescript": "^5.4.0"
+  }
+}

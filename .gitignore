@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+
+# Turbo
+.turbo
+
+# Build outputs
+dist
+.expo
+.next
+out
+
+# Cloudflare Workers local state (contains secrets — never commit)
+.wrangler
+.dev.vars
+
+# Environment files with real secrets
+.env.local
+.env.*.local
+
+# Editor
+.vscode/settings.json
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated API client (re-generated via pnpm gen:contract)
+packages/api-client/src/generated/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
