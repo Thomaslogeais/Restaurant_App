@@ -26,8 +26,9 @@ out
 .DS_Store
 Thumbs.db
 
-# Generated API client (re-generated via pnpm gen:contract)
-packages/api-client/src/generated/
+# Generated API client files ARE committed for reviewer convenience.
+# They are marked linguist-generated in .gitattributes.
+# Re-generate with: pnpm gen:contract  (never hand-edit)
 
 # Logs
 *.log
