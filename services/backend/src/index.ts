@@ -1,5 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { swaggerUI } from '@hono/swagger-ui';
+import { cors } from 'hono/cors';
 import { menuRouter } from './routes/menu';
 import { ordersRouter } from './routes/orders';
 import { customersRouter } from './routes/customers';
@@ -11,6 +12,27 @@ import type { AppEnv } from './lib/env';
 // Root app
 // ---------------------------------------------------------------------------
 const app = new OpenAPIHono<AppEnv>();
+
+// ---------------------------------------------------------------------------
+// CORS — allow all localhost origins for development.
+// In production, set CORS_ORIGIN env var to the deployed dashboard URL.
+// ---------------------------------------------------------------------------
+app.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      // Allow same-origin requests (no Origin header) and all localhost ports
+      if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return origin ?? '*';
+      }
+      return null;
+    },
+    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400,
+  }),
+);
 
 // ---------------------------------------------------------------------------
 // Health check (outside /api prefix — useful for load balancer checks)
