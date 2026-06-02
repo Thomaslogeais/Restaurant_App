@@ -1,7 +1,6 @@
-// @restaurant/shared
+// @restaurant/shared — public API
 // Design tokens, UI components, and shared utilities.
-// Sub-packages are exported individually; implementation begins in Milestone 5.
 
-// export * from './tokens';
-// export * from './components';
-// export * from './utils';
+export * from './tokens';
+export * from './components';
+export * from './utils';
