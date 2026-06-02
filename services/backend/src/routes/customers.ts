@@ -31,6 +31,7 @@ customersRouter.openapi(
   createRoute({
     method: 'get',
     path: '/customers',
+    operationId: 'listCustomers',
     tags: ['customers'],
     summary: 'List customers with order count and total spend',
     request: { query: restaurantQuery },
@@ -86,6 +87,7 @@ customersRouter.openapi(
   createRoute({
     method: 'post',
     path: '/customers',
+    operationId: 'createCustomer',
     tags: ['customers'],
     summary: 'Create a customer',
     request: {
@@ -117,6 +119,7 @@ customersRouter.openapi(
   createRoute({
     method: 'get',
     path: '/customers/:id',
+    operationId: 'getCustomer',
     tags: ['customers'],
     summary: 'Get customer detail with recent orders',
     request: {
@@ -185,6 +188,7 @@ customersRouter.openapi(
   createRoute({
     method: 'patch',
     path: '/customers/:id',
+    operationId: 'updateCustomer',
     tags: ['customers'],
     summary: 'Update a customer',
     request: {
