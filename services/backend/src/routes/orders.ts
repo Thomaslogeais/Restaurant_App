@@ -112,7 +112,7 @@ ordersRouter.openapi(
       .where(eq(table.orderingSettings.restaurantId, restaurantId));
 
     if (settings && !settings.orderingEnabled) {
-      return c.json(Errors.conflict('Ordering is currently disabled for this restaurant'), 409);
+      return c.json(Errors.conflict('Ordering is currently disabled for this restaurant. Ask a manager to enable it in Settings.'), 409);
     }
 
     // 2. Validate customer belongs to this restaurant (if provided)
@@ -187,8 +187,8 @@ ordersRouter.openapi(
       const minimum = parseFloat(settings.minimumOrderAmount);
       if (minimum > 0 && parseFloat(totalAmount) < minimum) {
         return c.json(
-          Errors.conflict(
-            `Order total £${totalAmount} is below the minimum of £${minimum.toFixed(2)}`,
+        Errors.conflict(
+            `Order total (€${totalAmount}) is below the minimum order amount of €${minimum.toFixed(2)}. Add more items to your order.`,
           ),
           409,
         );

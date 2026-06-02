@@ -20,6 +20,9 @@ const TABS: { label: string; value: FilterValue }[] = [
   { label: 'Cancelled', value: 'cancelled' },
 ];
 
+// React Native Web adds `hovered` and `focused` to the Pressable state callback.
+type PressableState = { pressed: boolean; hovered?: boolean; focused?: boolean };
+
 export function FilterTabs({ value, onChange }: FilterTabsProps) {
   return (
     <View style={styles.wrapper}>
@@ -37,11 +40,26 @@ export function FilterTabs({ value, onChange }: FilterTabsProps) {
               onPress={() => onChange(tab.value)}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
-              style={({ pressed }) => [
-                styles.tab,
-                active && styles.tabActive,
-                pressed && !active && styles.tabPressed,
-              ]}
+              style={((state: PressableState) => {
+                const hovered = state.hovered === true;
+                const pressed = state.pressed;
+
+                if (active) {
+                  // Active tab: darken on hover/press
+                  return [
+                    styles.tab,
+                    styles.tabActive,
+                    (hovered || pressed) && styles.tabActiveHovered,
+                  ];
+                }
+
+                // Inactive tab: progressively lighter → hover → pressed
+                return [
+                  styles.tab,
+                  hovered && styles.tabHovered,
+                  pressed && styles.tabPressed,
+                ];
+              }) as any}
             >
               <Text style={[styles.label, active && styles.labelActive]}>
                 {tab.label}
@@ -73,12 +91,22 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  tabActive: {
-    backgroundColor: colors.primary,
+  tabHovered: {
+    backgroundColor: colors.surfaceAlt,
     borderColor: colors.primary,
   },
   tabPressed: {
     backgroundColor: colors.surfaceAlt,
+    borderColor: colors.primary,
+    opacity: 0.85,
+  },
+  tabActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  tabActiveHovered: {
+    backgroundColor: colors.primaryDark,
+    borderColor: colors.primaryDark,
   },
   label: {
     fontSize: fontSize.sm,

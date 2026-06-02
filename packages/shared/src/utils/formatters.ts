@@ -42,7 +42,10 @@ export function formatDate(date: string | Date): string {
 export function formatTime(date: string | Date): string {
   const d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return '—';
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  // Manual formatting guarantees "HH:MM" regardless of runtime locale.
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
 }
 
 /**

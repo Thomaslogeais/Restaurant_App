@@ -8,6 +8,7 @@
  * Copy .env.example → .env and fill in your Neon connection string.
  */
 import 'dotenv/config';
+import { sql } from 'drizzle-orm';
 import { createDb } from './client';
 import {
   restaurants,
@@ -31,16 +32,36 @@ async function seed() {
   console.log('🌱  Starting seed...\n');
 
   // -------------------------------------------------------------------------
-  // 1. Restaurant
+  // 0. Reset — truncate all tables AND restart auto-increment sequences.
+  //    CASCADE handles FK constraints automatically.
+  //    RESTART IDENTITY ensures IDs always start from 1 after a re-seed.
   // -------------------------------------------------------------------------
-  console.log('  → Inserting restaurant...');
+  console.log('  → Resetting existing data...');
+  await db.execute(
+    sql`TRUNCATE TABLE
+          order_items,
+          orders,
+          ordering_settings,
+          menu_items,
+          menu_categories,
+          customers,
+          restaurants
+        RESTART IDENTITY CASCADE`,
+  );
+  console.log('     ✓ All tables truncated and sequences reset to 1');
+
+  // -------------------------------------------------------------------------
+  // 1. Restaurant                                          ← CUSTOMISE HERE
+  //    Change name, slug (URL-safe), address and phone.
+  // -------------------------------------------------------------------------
+  console.log('\n  → Inserting restaurant...');
   const [restaurant] = await db
     .insert(restaurants)
     .values({
-      name: 'The Garden Table',
-      slug: 'the-garden-table',
-      address: '42 Orchard Lane, London EC1A 1BB',
-      phone: '+44 20 7946 0958',
+      name: 'Le Bistrot des Halles',        // ← CUSTOMISE
+      slug: 'le-bistrot-des-halles',        // ← CUSTOMISE (lowercase, hyphens only)
+      address: '12 Rue Montorgueil, 75001 Paris', // ← CUSTOMISE
+      phone: '+33 1 42 36 00 00',           // ← CUSTOMISE
     })
     .returning();
 
@@ -48,22 +69,28 @@ async function seed() {
   console.log(`     ✓ Restaurant #${rId}: ${restaurant.name}`);
 
   // -------------------------------------------------------------------------
-  // 2. Menu categories
+  // 2. Menu categories                                     ← CUSTOMISE HERE
+  //    Add / remove / rename categories. Keep position values sequential.
+  //    Update the destructured variable names to match what you use below.
   // -------------------------------------------------------------------------
   console.log('\n  → Inserting menu categories...');
   const [starters, mains, desserts, beverages] = await db
     .insert(menuCategories)
     .values([
-      { restaurantId: rId, name: 'Starters', position: 1 },
-      { restaurantId: rId, name: 'Mains', position: 2 },
-      { restaurantId: rId, name: 'Desserts', position: 3 },
-      { restaurantId: rId, name: 'Beverages', position: 4 },
+      { restaurantId: rId, name: 'Starters', position: 1 },  // ← CUSTOMISE
+      { restaurantId: rId, name: 'Mains', position: 2 },     // ← CUSTOMISE
+      { restaurantId: rId, name: 'Desserts', position: 3 },  // ← CUSTOMISE
+      { restaurantId: rId, name: 'Beverages', position: 4 }, // ← CUSTOMISE
     ])
     .returning();
   console.log(`     ✓ ${[starters, mains, desserts, beverages].map((c) => c.name).join(', ')}`);
 
   // -------------------------------------------------------------------------
-  // 3. Menu items (3 per category, 12 total)
+  // 3. Menu items                                          ← CUSTOMISE HERE
+  //    Add / remove / edit items. Required fields per item:
+  //      name (string), price ("12.50"), categoryId, available (true/false)
+  //    description can be null.
+  //    After editing, keep the byName(…) lookups below in sync with names.
   // -------------------------------------------------------------------------
   console.log('\n  → Inserting menu items...');
   const insertedItems = await db
@@ -73,99 +100,99 @@ async function seed() {
       {
         restaurantId: rId,
         categoryId: starters.id,
-        name: 'Burrata & Heirloom Tomatoes',
-        description: 'Creamy burrata with vine-ripened tomatoes, basil oil, and sea salt.',
-        price: '9.50',
+        name: 'Velouté de Champignons',
+        description: 'Creamy wild mushroom velouté with herb croutons and a drizzle of truffle oil.',
+        price: '9.00',
         available: true,
       },
       {
         restaurantId: rId,
         categoryId: starters.id,
-        name: 'Crispy Calamari',
-        description: 'Lightly fried squid rings with aioli and a squeeze of lemon.',
-        price: '8.00',
+        name: 'Tartare de Saumon',
+        description: 'Fresh Atlantic salmon tartare with capers, shallots, and a lemon-dill dressing.',
+        price: '10.50',
         available: true,
       },
       {
         restaurantId: rId,
         categoryId: starters.id,
-        name: 'Garden Minestrone',
-        description: 'Seasonal vegetable soup with crusty sourdough.',
-        price: '7.50',
+        name: 'Soupe à l\'Oignon',
+        description: 'Classic French onion soup with Gruyère croutons, gratinated to perfection.',
+        price: '8.50',
         available: true,
       },
       // --- Mains ---
       {
         restaurantId: rId,
         categoryId: mains.id,
-        name: 'Pan-Seared Salmon',
-        description: 'Atlantic salmon fillet with herb butter, new potatoes, and green beans.',
+        name: 'Confit de Canard',
+        description: 'Slow-cooked duck leg confit with Sarladaise potatoes and a crisp green salad.',
+        price: '24.00',
+        available: true,
+      },
+      {
+        restaurantId: rId,
+        categoryId: mains.id,
+        name: 'Entrecôte Sauce Bordelaise',
+        description: 'Grilled ribeye steak with a rich red wine shallot sauce and crispy frites.',
+        price: '29.00',
+        available: true,
+      },
+      {
+        restaurantId: rId,
+        categoryId: mains.id,
+        name: 'Dos de Cabillaud',
+        description: 'Pan-seared cod fillet with beurre blanc, seasonal vegetables, and crushed potatoes. (GF)',
         price: '22.00',
-        available: true,
-      },
-      {
-        restaurantId: rId,
-        categoryId: mains.id,
-        name: 'Beef Tenderloin',
-        description: '200g fillet, peppercorn sauce, dauphinoise potatoes, and wilted spinach.',
-        price: '28.00',
-        available: true,
-      },
-      {
-        restaurantId: rId,
-        categoryId: mains.id,
-        name: 'Wild Mushroom Risotto',
-        description: 'Arborio rice, mixed wild mushrooms, parmesan, and truffle oil. (V)',
-        price: '16.50',
         available: true,
       },
       // --- Desserts ---
       {
         restaurantId: rId,
         categoryId: desserts.id,
-        name: 'Chocolate Fondant',
-        description: 'Warm dark chocolate pudding with vanilla bean ice cream.',
-        price: '8.50',
+        name: 'Tarte Tatin',
+        description: 'Warm upside-down caramelised apple tart served with a dollop of crème fraîche.',
+        price: '8.00',
         available: true,
       },
       {
         restaurantId: rId,
         categoryId: desserts.id,
-        name: 'Seasonal Fruit Tart',
-        description: "Crisp pastry shell, crème pâtissière, and today's seasonal fruits.",
+        name: 'Mousse au Chocolat',
+        description: 'Light and airy dark chocolate mousse made with single-origin Valrhona chocolate. (V)',
         price: '7.50',
         available: true,
       },
       {
         restaurantId: rId,
         categoryId: desserts.id,
-        name: 'Crème Brûlée',
-        description: 'Classic vanilla custard with a caramelised sugar crust.',
-        price: '8.00',
+        name: 'Profiteroles',
+        description: 'Golden choux pastry filled with vanilla ice cream and drizzled with warm chocolate sauce.',
+        price: '8.50',
         available: true,
       },
       // --- Beverages ---
       {
         restaurantId: rId,
         categoryId: beverages.id,
-        name: 'Sparkling Water (500ml)',
+        name: 'Eau Pétillante (50cl)',
         description: null,
-        price: '3.00',
+        price: '3.50',
         available: true,
       },
       {
         restaurantId: rId,
         categoryId: beverages.id,
-        name: 'House Red Wine (175ml)',
-        description: 'Côtes du Rhône, smooth and full-bodied.',
+        name: 'Bordeaux Rouge (17cl)',
+        description: 'Château de Lastours, smooth and full-bodied with notes of blackcurrant and oak.',
         price: '7.50',
         available: true,
       },
       {
         restaurantId: rId,
         categoryId: beverages.id,
-        name: 'Freshly Squeezed Orange Juice',
-        description: null,
+        name: 'Jus de Pomme Pressé',
+        description: 'Freshly pressed Normandy apple juice, naturally cloudy and lightly chilled.',
         price: '4.50',
         available: true,
       },
@@ -173,22 +200,25 @@ async function seed() {
     .returning();
 
   const byName = (name: string) => insertedItems.find((i) => i.name === name)!;
-  const salmon = byName('Pan-Seared Salmon');
-  const beef = byName('Beef Tenderloin');
-  const risotto = byName('Wild Mushroom Risotto');
-  const burrata = byName('Burrata & Heirloom Tomatoes');
-  const calamari = byName('Crispy Calamari');
-  const fondant = byName('Chocolate Fondant');
-  const fruitTart = byName('Seasonal Fruit Tart');
-  const cremeBrulee = byName('Crème Brûlée');
-  const water = byName('Sparkling Water (500ml)');
-  const wine = byName('House Red Wine (175ml)');
-  const oj = byName('Freshly Squeezed Orange Juice');
+  const velout     = byName('Velouté de Champignons');
+  const tartare    = byName('Tartare de Saumon');
+  const soupeOign  = byName("Soupe à l'Oignon");
+  const canard     = byName('Confit de Canard');
+  const entrecote  = byName('Entrecôte Sauce Bordelaise');
+  const cabillaud  = byName('Dos de Cabillaud');
+  const tatinDes   = byName('Tarte Tatin');
+  const mousse     = byName('Mousse au Chocolat');
+  const profiter   = byName('Profiteroles');
+  const eau        = byName('Eau Pétillante (50cl)');
+  const bordeaux   = byName('Bordeaux Rouge (17cl)');
+  const jus        = byName('Jus de Pomme Pressé');
 
   console.log(`     ✓ ${insertedItems.length} menu items inserted`);
 
   // -------------------------------------------------------------------------
-  // 4. Customers
+  // 4. Customers                                           ← CUSTOMISE HERE
+  //    Required: name, email. Optional: phone, loyaltyPoints (default 0).
+  //    Update the destructured variables [marie, luca, …] to match.
   // -------------------------------------------------------------------------
   console.log('\n  → Inserting customers...');
   const insertedCustomers = await db
@@ -196,110 +226,113 @@ async function seed() {
     .values([
       {
         restaurantId: rId,
-        name: 'Sophie Martin',
-        email: 'sophie.martin@example.com',
-        phone: '+44 7700 900001',
-        loyaltyPoints: 120,
+        name: 'Marie-Claire Fontaine',
+        email: 'marie-claire.fontaine@example.com',
+        phone: '+33 6 12 34 56 78',
+        loyaltyPoints: 140,
       },
       {
         restaurantId: rId,
-        name: 'James Wilson',
-        email: 'james.wilson@example.com',
-        phone: '+44 7700 900002',
-        loyaltyPoints: 85,
+        name: 'Luca Ferreira',
+        email: 'luca.ferreira@example.com',
+        phone: '+33 6 23 45 67 89',
+        loyaltyPoints: 90,
       },
       {
         restaurantId: rId,
-        name: 'Emma Chen',
-        email: 'emma.chen@example.com',
-        phone: '+44 7700 900003',
-        loyaltyPoints: 200,
+        name: 'Camille Rousseau',
+        email: 'camille.rousseau@example.com',
+        phone: '+33 6 34 56 78 90',
+        loyaltyPoints: 215,
       },
       {
         restaurantId: rId,
-        name: 'Oliver Patel',
-        email: 'oliver.patel@example.com',
-        phone: '+44 7700 900004',
-        loyaltyPoints: 50,
+        name: 'Antoine Lefèvre',
+        email: 'antoine.lefevre@example.com',
+        phone: '+33 6 45 67 89 01',
+        loyaltyPoints: 55,
       },
       {
         restaurantId: rId,
-        name: 'Isabelle Dubois',
-        email: 'isabelle.dubois@example.com',
-        phone: '+44 7700 900005',
-        loyaltyPoints: 175,
+        name: 'Jary Valimamode',
+        email: 'jary.valimamode@example.com',
+        phone: '+33 6 56 78 90 12',
+        loyaltyPoints: 180,
       },
     ])
     .returning();
 
-  const [sophie, james, emma, oliver, isabelle] = insertedCustomers;
+  const [marie, luca, camille, antoine, jary] = insertedCustomers;
   console.log(`     ✓ ${insertedCustomers.length} customers inserted`);
 
   // -------------------------------------------------------------------------
-  // 5. Orders (8 with mixed statuses)
-  //    totalAmount is pre-calculated here since the seed bypasses the API layer.
+  // 5. Orders                                              ← CUSTOMISE HERE
+  //    status must be one of: pending | accepted | preparing | ready |
+  //                           completed | cancelled
+  //    totalAmount MUST equal the sum of the order items in section 6.
+  //    Set customerId to null for walk-in / anonymous orders.
   // -------------------------------------------------------------------------
   console.log('\n  → Inserting orders...');
   const insertedOrders = await db
     .insert(orders)
     .values([
-      // 1. pending — Oliver: Salmon + Water
+      // 1. pending — Antoine: Canard + Eau
       {
         restaurantId: rId,
-        customerId: oliver.id,
+        customerId: antoine.id,
         status: 'pending' as const,
-        totalAmount: '25.00',
-        notes: 'Table 4',
+        totalAmount: '27.50',
+        notes: 'Table 5',
       },
-      // 2. pending — Guest (no customer): Risotto
+      // 2. pending — Guest (walk-in): Cabillaud
       {
         restaurantId: rId,
         customerId: null,
         status: 'pending' as const,
-        totalAmount: '16.50',
-        notes: 'Takeaway',
+        totalAmount: '22.00',
+        notes: 'Table 2',
       },
-      // 3. accepted — Sophie: Burrata + Beef + Wine
+      // 3. accepted — Marie-Claire: Tartare + Entrecôte + Bordeaux
       {
         restaurantId: rId,
-        customerId: sophie.id,
+        customerId: marie.id,
         status: 'accepted' as const,
-        totalAmount: '45.00',
+        totalAmount: '47.00',
       },
-      // 4. preparing — James: Calamari + Salmon
+      // 4. preparing — Luca: Soupe à l'Oignon + Canard
       {
         restaurantId: rId,
-        customerId: james.id,
+        customerId: luca.id,
         status: 'preparing' as const,
-        totalAmount: '30.00',
+        totalAmount: '32.50',
       },
-      // 5. ready — Emma: Beef + Fondant + Water
+      // 5. ready — Camille: Entrecôte + Profiteroles + Eau
       {
         restaurantId: rId,
-        customerId: emma.id,
+        customerId: camille.id,
         status: 'ready' as const,
-        totalAmount: '39.50',
+        totalAmount: '41.00',
       },
-      // 6. completed — Sophie: Risotto + Crème Brûlée + OJ
+      // 6. completed — Marie-Claire: Velouté + Mousse au Chocolat + Jus
       {
         restaurantId: rId,
-        customerId: sophie.id,
+        customerId: marie.id,
         status: 'completed' as const,
-        totalAmount: '29.00',
+        totalAmount: '21.00',
       },
-      // 7. completed — Isabelle: Salmon + Fruit Tart + Wine
+      // 7. completed — Jary: Cabillaud + Tarte Tatin + Bordeaux
       {
         restaurantId: rId,
-        customerId: isabelle.id,
+        customerId: jary.id,
         status: 'completed' as const,
-        totalAmount: '37.00',
+        totalAmount: '37.50',
       },
-      // 8. cancelled — James: Calamari only
+      // 8. cancelled — Luca: Tartare only (changed mind)
       {
         restaurantId: rId,
-        customerId: james.id,
+        customerId: luca.id,
         status: 'cancelled' as const,
-        totalAmount: '8.00',
+        totalAmount: '10.50',
         notes: 'Customer changed mind',
       },
     ])
@@ -308,41 +341,51 @@ async function seed() {
   console.log(`     ✓ ${insertedOrders.length} orders inserted`);
 
   // -------------------------------------------------------------------------
-  // 6. Order items
+  // 6. Order items                                         ← CUSTOMISE HERE
+  //    Each row links an order to a menu item.
+  //    unitPrice must match the item's price field.
+  //    subtotal = unitPrice × quantity.
+  //    Sum of all subtotals for an order must equal that order's totalAmount.
   // -------------------------------------------------------------------------
   console.log('\n  → Inserting order items...');
   await db.insert(orderItems).values([
-    // Order 1: Oliver — Salmon + Water
-    { orderId: insertedOrders[0].id, menuItemId: salmon.id, quantity: 1, unitPrice: '22.00', subtotal: '22.00' },
-    { orderId: insertedOrders[0].id, menuItemId: water.id, quantity: 1, unitPrice: '3.00', subtotal: '3.00' },
-    // Order 2: Guest — Risotto
-    { orderId: insertedOrders[1].id, menuItemId: risotto.id, quantity: 1, unitPrice: '16.50', subtotal: '16.50' },
-    // Order 3: Sophie — Burrata + Beef + Wine
-    { orderId: insertedOrders[2].id, menuItemId: burrata.id, quantity: 1, unitPrice: '9.50', subtotal: '9.50' },
-    { orderId: insertedOrders[2].id, menuItemId: beef.id, quantity: 1, unitPrice: '28.00', subtotal: '28.00' },
-    { orderId: insertedOrders[2].id, menuItemId: wine.id, quantity: 1, unitPrice: '7.50', subtotal: '7.50' },
-    // Order 4: James — Calamari + Salmon
-    { orderId: insertedOrders[3].id, menuItemId: calamari.id, quantity: 1, unitPrice: '8.00', subtotal: '8.00' },
-    { orderId: insertedOrders[3].id, menuItemId: salmon.id, quantity: 1, unitPrice: '22.00', subtotal: '22.00' },
-    // Order 5: Emma — Beef + Fondant + Water
-    { orderId: insertedOrders[4].id, menuItemId: beef.id, quantity: 1, unitPrice: '28.00', subtotal: '28.00' },
-    { orderId: insertedOrders[4].id, menuItemId: fondant.id, quantity: 1, unitPrice: '8.50', subtotal: '8.50' },
-    { orderId: insertedOrders[4].id, menuItemId: water.id, quantity: 1, unitPrice: '3.00', subtotal: '3.00' },
-    // Order 6: Sophie — Risotto + Crème Brûlée + OJ
-    { orderId: insertedOrders[5].id, menuItemId: risotto.id, quantity: 1, unitPrice: '16.50', subtotal: '16.50' },
-    { orderId: insertedOrders[5].id, menuItemId: cremeBrulee.id, quantity: 1, unitPrice: '8.00', subtotal: '8.00' },
-    { orderId: insertedOrders[5].id, menuItemId: oj.id, quantity: 1, unitPrice: '4.50', subtotal: '4.50' },
-    // Order 7: Isabelle — Salmon + Fruit Tart + Wine
-    { orderId: insertedOrders[6].id, menuItemId: salmon.id, quantity: 1, unitPrice: '22.00', subtotal: '22.00' },
-    { orderId: insertedOrders[6].id, menuItemId: fruitTart.id, quantity: 1, unitPrice: '7.50', subtotal: '7.50' },
-    { orderId: insertedOrders[6].id, menuItemId: wine.id, quantity: 1, unitPrice: '7.50', subtotal: '7.50' },
-    // Order 8: James — Calamari (cancelled)
-    { orderId: insertedOrders[7].id, menuItemId: calamari.id, quantity: 1, unitPrice: '8.00', subtotal: '8.00' },
+    // Order 1: Antoine — Canard + Eau
+    { orderId: insertedOrders[0].id, menuItemId: canard.id,    quantity: 1, unitPrice: '24.00', subtotal: '24.00' },
+    { orderId: insertedOrders[0].id, menuItemId: eau.id,       quantity: 1, unitPrice: '3.50',  subtotal: '3.50'  },
+    // Order 2: Guest — Cabillaud
+    { orderId: insertedOrders[1].id, menuItemId: cabillaud.id, quantity: 1, unitPrice: '22.00', subtotal: '22.00' },
+    // Order 3: Marie-Claire — Tartare + Entrecôte + Bordeaux
+    { orderId: insertedOrders[2].id, menuItemId: tartare.id,   quantity: 1, unitPrice: '10.50', subtotal: '10.50' },
+    { orderId: insertedOrders[2].id, menuItemId: entrecote.id, quantity: 1, unitPrice: '29.00', subtotal: '29.00' },
+    { orderId: insertedOrders[2].id, menuItemId: bordeaux.id,  quantity: 1, unitPrice: '7.50',  subtotal: '7.50'  },
+    // Order 4: Luca — Soupe + Canard
+    { orderId: insertedOrders[3].id, menuItemId: soupeOign.id, quantity: 1, unitPrice: '8.50',  subtotal: '8.50'  },
+    { orderId: insertedOrders[3].id, menuItemId: canard.id,    quantity: 1, unitPrice: '24.00', subtotal: '24.00' },
+    // Order 5: Camille — Entrecôte + Profiteroles + Eau
+    { orderId: insertedOrders[4].id, menuItemId: entrecote.id, quantity: 1, unitPrice: '29.00', subtotal: '29.00' },
+    { orderId: insertedOrders[4].id, menuItemId: profiter.id,  quantity: 1, unitPrice: '8.50',  subtotal: '8.50'  },
+    { orderId: insertedOrders[4].id, menuItemId: eau.id,       quantity: 1, unitPrice: '3.50',  subtotal: '3.50'  },
+    // Order 6: Marie-Claire — Velouté + Mousse + Jus
+    { orderId: insertedOrders[5].id, menuItemId: velout.id,    quantity: 1, unitPrice: '9.00',  subtotal: '9.00'  },
+    { orderId: insertedOrders[5].id, menuItemId: mousse.id,    quantity: 1, unitPrice: '7.50',  subtotal: '7.50'  },
+    { orderId: insertedOrders[5].id, menuItemId: jus.id,       quantity: 1, unitPrice: '4.50',  subtotal: '4.50'  },
+    // Order 7: Jary — Cabillaud + Tarte Tatin + Bordeaux
+    { orderId: insertedOrders[6].id, menuItemId: cabillaud.id, quantity: 1, unitPrice: '22.00', subtotal: '22.00' },
+    { orderId: insertedOrders[6].id, menuItemId: tatinDes.id,  quantity: 1, unitPrice: '8.00',  subtotal: '8.00'  },
+    { orderId: insertedOrders[6].id, menuItemId: bordeaux.id,  quantity: 1, unitPrice: '7.50',  subtotal: '7.50'  },
+    // Order 8: Luca — Tartare (cancelled)
+    { orderId: insertedOrders[7].id, menuItemId: tartare.id,   quantity: 1, unitPrice: '10.50', subtotal: '10.50' },
   ]);
   console.log('     ✓ Order items inserted');
 
   // -------------------------------------------------------------------------
-  // 7. Ordering settings
+  // 7. Ordering settings                                   ← CUSTOMISE HERE
+  //    orderingEnabled: show/hide the ordering feature in the dashboard
+  //    autoAccept: auto-advance pending → accepted on creation
+  //    defaultPrepTimeMinutes: shown to staff as a guide
+  //    minimumOrderAmount: minimum total ("0.00" to disable)
+  //    serviceAvailability: "all" | "dine_in" | "takeaway"
+  //    openingHoursNotes: free-text string shown in Settings tab
   // -------------------------------------------------------------------------
   console.log('\n  → Inserting ordering settings...');
   await db.insert(orderingSettings).values({
@@ -352,20 +395,19 @@ async function seed() {
     defaultPrepTimeMinutes: 20,
     minimumOrderAmount: '10.00',
     serviceAvailability: 'all',
-    openingHoursNotes: 'Open daily 11:00–22:00. Last orders at 21:30.',
+    openingHoursNotes: 'Ouvert du mardi au dimanche, 12h00–14h30 et 19h00–22h30. Fermé le lundi.',
   });
   console.log('     ✓ Ordering settings inserted');
 
   // -------------------------------------------------------------------------
-  // Summary
+  // Summary — dynamic so it stays accurate after customisation
   // -------------------------------------------------------------------------
   console.log('\n✅  Seed complete!\n');
-  console.log('   Restaurant  : The Garden Table');
-  console.log('   Categories  : 4');
-  console.log('   Menu items  : 12');
-  console.log('   Customers   : 5');
-  console.log('   Orders      : 8 (2 pending, 1 accepted, 1 preparing, 1 ready, 2 completed, 1 cancelled)');
-  console.log('   Order items : 18');
+  console.log(`   Restaurant  : ${restaurant.name}`);
+  console.log(`   Categories  : ${[starters, mains, desserts, beverages].length}`);
+  console.log(`   Menu items  : ${insertedItems.length}`);
+  console.log(`   Customers   : ${insertedCustomers.length}`);
+  console.log(`   Orders      : ${insertedOrders.length}`);
 }
 
 seed().catch((err) => {

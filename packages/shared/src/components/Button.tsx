@@ -4,6 +4,7 @@ import {
   Text,
   ActivityIndicator,
   StyleSheet,
+  StyleProp,
   ViewStyle,
 } from 'react-native';
 import { colors } from '../tokens/colors';
@@ -22,35 +23,50 @@ export interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
-type VariantStyle = { bg: string; pressedBg: string; textColor: string; borderColor: string };
+type VariantStyle = {
+  bg: string;
+  hoveredBg: string;
+  pressedBg: string;
+  textColor: string;
+  borderColor: string;
+  focusBorderColor: string;
+};
 
 const VARIANT_STYLES: Record<ButtonVariant, VariantStyle> = {
   primary: {
     bg: colors.primary,
+    hoveredBg: colors.primaryDark,
     pressedBg: colors.primaryDark,
     textColor: colors.textInverse,
     borderColor: colors.transparent,
+    focusBorderColor: colors.accent,
   },
   secondary: {
     bg: colors.surface,
+    hoveredBg: colors.surfaceAlt,
     pressedBg: colors.surfaceAlt,
     textColor: colors.primary,
     borderColor: colors.border,
+    focusBorderColor: colors.primary,
   },
   ghost: {
     bg: colors.transparent,
+    hoveredBg: colors.surfaceAlt,
     pressedBg: colors.surfaceAlt,
     textColor: colors.primary,
     borderColor: colors.transparent,
+    focusBorderColor: colors.primary,
   },
   danger: {
     bg: colors.error,
+    hoveredBg: colors.errorDark,
     pressedBg: colors.errorDark,
     textColor: colors.textInverse,
     borderColor: colors.transparent,
+    focusBorderColor: colors.error,
   },
 };
 
@@ -59,6 +75,10 @@ const SIZE_STYLES: Record<ButtonSize, { paddingH: number; paddingV: number; fs: 
   md: { paddingH: spacing[4], paddingV: spacing[2.5], fs: fontSize.md },
   lg: { paddingH: spacing[6], paddingV: spacing[3], fs: fontSize.lg },
 };
+
+// React Native Web extends PressableStateCallbackType with `hovered` and `focused`.
+// We cast the state type so we can use those props on web without TS errors.
+type PressableState = { pressed: boolean; hovered?: boolean; focused?: boolean };
 
 export function Button({
   label,
@@ -80,18 +100,33 @@ export function Button({
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
-      style={({ pressed }) => [
-        styles.base,
-        {
-          backgroundColor: pressed && !isDisabled ? vStyle.pressedBg : vStyle.bg,
-          borderColor: vStyle.borderColor,
-          paddingHorizontal: sStyle.paddingH,
-          paddingVertical: sStyle.paddingV,
-          opacity: isDisabled ? 0.5 : 1,
-          alignSelf: fullWidth ? ('stretch' as const) : ('flex-start' as const),
-        },
-        style,
-      ]}
+      style={((state: PressableState) => {
+        const hovered = state.hovered === true && !isDisabled;
+        const focused = state.focused === true && !isDisabled;
+        const pressed = state.pressed && !isDisabled;
+
+        // Pick background: pressed > hovered > default
+        let bg = vStyle.bg;
+        if (pressed) bg = vStyle.pressedBg;
+        else if (hovered) bg = vStyle.hoveredBg;
+
+        // Pick border: focused adds a visible ring
+        const borderColor = focused ? vStyle.focusBorderColor : vStyle.borderColor;
+
+        return [
+          styles.base,
+          {
+            backgroundColor: bg,
+            borderColor,
+            borderWidth: focused ? 2 : 1,
+            paddingHorizontal: focused ? sStyle.paddingH - 1 : sStyle.paddingH,
+            paddingVertical: focused ? sStyle.paddingV - 1 : sStyle.paddingV,
+            opacity: isDisabled ? 0.45 : pressed ? 0.9 : 1,
+            alignSelf: fullWidth ? ('stretch' as const) : ('flex-start' as const),
+          },
+          style,
+        ];
+      }) as any}
     >
       {loading ? (
         <ActivityIndicator color={vStyle.textColor} size="small" />
