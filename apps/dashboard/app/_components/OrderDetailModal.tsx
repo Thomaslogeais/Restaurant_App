@@ -11,6 +11,7 @@ import {
   fontSize,
   fontWeight,
   useToast,
+  extractApiError,
 } from '@restaurant/shared';
 import { formatCurrency, formatDate, formatTime } from '@restaurant/shared';
 import {
@@ -85,7 +86,7 @@ export function OrderDetailModal({ orderId, onClose }: OrderDetailModalProps) {
       show('Order updated', 'success');
       onClose();
     },
-    onError: () => show('Failed to update order', 'error'),
+    onError: (err) => show(extractApiError(err, 'Failed to update order'), 'error'),
   });
 
   const availableActions = order ? (ACTIONS_FOR_STATUS[order.status] ?? []) : [];

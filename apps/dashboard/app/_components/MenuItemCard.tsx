@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Switch, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Switch, StyleSheet } from 'react-native';
 import { Card, colors, spacing, fontSize, fontWeight } from '@restaurant/shared';
 import { formatCurrency } from '@restaurant/shared';
 import type { ListMenuItems200Item } from '@restaurant/api-client';
@@ -12,19 +12,15 @@ interface MenuItemCardProps {
 }
 
 export function MenuItemCard({ item, onToggleAvailable, onEdit, toggling }: MenuItemCardProps) {
-  // Card has NO onPress → renders as a plain <div> on web, not a <button>.
-  // The edit area and the switch are separate interactive children; nesting
-  // an <input> or <button> inside a <button> is invalid HTML.
+  // The Card itself is the pressable area (full-width hover + edit).
+  // The Switch handles its own touch events and does not bubble up to the Card,
+  // so both interactions work independently with no nested-button issues.
+  // (RNW renders Pressable as a <div>, not a <button>, so nesting a Switch is valid.)
   return (
-    <Card shadow="sm" style={styles.card}>
+    <Card shadow="sm" style={styles.card} onPress={() => onEdit(item)}>
       <View style={styles.row}>
-        {/* Tappable info area → opens edit modal */}
-        <Pressable
-          onPress={() => onEdit(item)}
-          accessibilityRole="button"
-          accessibilityLabel={`Edit ${item.name}`}
-          style={({ pressed }) => [styles.infoArea, pressed && styles.infoAreaPressed]}
-        >
+        {/* Info area — layout only, interaction is the whole Card */}
+        <View style={styles.infoArea}>
           <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
           {item.description ? (
             <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
@@ -32,9 +28,10 @@ export function MenuItemCard({ item, onToggleAvailable, onEdit, toggling }: Menu
           <Text style={styles.price}>
             {item.price != null ? formatCurrency(Number(item.price)) : 'Price TBD'}
           </Text>
-        </Pressable>
+          <Text style={styles.editHint}>Tap to edit ›</Text>
+        </View>
 
-        {/* Availability toggle — separate from the edit pressable */}
+        {/* Availability toggle — has its own touch handler, stops propagation */}
         <View style={styles.controls}>
           <Switch
             value={item.available}
@@ -68,7 +65,6 @@ const styles = StyleSheet.create({
     gap: spacing[0.5],
     paddingVertical: spacing[1],
   },
-  infoAreaPressed: { opacity: 0.7 },
   name: {
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
@@ -82,6 +78,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     fontWeight: fontWeight.bold,
     color: colors.accent,
+  },
+  editHint: {
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    marginTop: spacing[0.5],
   },
   controls: { alignItems: 'center', gap: spacing[0.5] },
   availLabel: {

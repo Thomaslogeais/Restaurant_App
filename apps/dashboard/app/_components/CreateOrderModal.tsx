@@ -14,6 +14,7 @@ import {
   fontWeight,
   radius,
   useToast,
+  extractApiError,
 } from '@restaurant/shared';
 import { formatCurrency } from '@restaurant/shared';
 import {
@@ -40,6 +41,7 @@ export function CreateOrderModal({ visible, onClose }: CreateOrderModalProps) {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { data: customers = [], isLoading: loadingCustomers } = useListCustomers(
     { restaurantId: RESTAURANT_ID },
@@ -58,7 +60,11 @@ export function CreateOrderModal({ visible, onClose }: CreateOrderModalProps) {
         show('Order created', 'success');
         handleClose();
       },
-      onError: () => show('Failed to create order', 'error'),
+      onError: (err) => {
+        const msg = extractApiError(err, 'Failed to create order');
+        setSubmitError(msg);
+        show(msg, 'error');
+      },
     },
   });
 
@@ -66,10 +72,12 @@ export function CreateOrderModal({ visible, onClose }: CreateOrderModalProps) {
     setCart([]);
     setNotes('');
     setSelectedCustomerId(undefined);
+    setSubmitError(null);
     onClose();
   }
 
   function adjustQty(item: ListMenuItems200Item, delta: number) {
+    if (submitError) setSubmitError(null);
     setCart((prev) => {
       const existing = prev.find((c) => c.menuItem.id === item.id);
       if (!existing) {
@@ -183,6 +191,13 @@ export function CreateOrderModal({ visible, onClose }: CreateOrderModalProps) {
           </View>
         ) : null}
 
+        {/* Inline error banner — shown when the API rejects the order */}
+        {submitError ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>⚠️ {submitError}</Text>
+          </View>
+        ) : null}
+
         {/* Submit */}
         <Button
           label={isPending ? 'Creating…' : 'Create Order'}
@@ -237,4 +252,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cartText: { fontSize: fontSize.md, fontWeight: fontWeight.semibold, color: colors.infoDark },
+  errorBanner: {
+    backgroundColor: colors.errorBg,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.error,
+    padding: spacing[3],
+  },
+  errorBannerText: {
+    fontSize: fontSize.sm,
+    color: colors.errorDark,
+    fontWeight: fontWeight.medium,
+    lineHeight: 20,
+  },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Pressable, StyleSheet, ViewStyle } from 'react-native';
+import { View, Pressable, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { colors } from '../tokens/colors';
 import { spacing } from '../tokens/spacing';
 import { radius } from '../tokens/radius';
@@ -10,8 +10,11 @@ export interface CardProps {
   padding?: number;
   shadow?: ShadowToken;
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
+
+// React Native Web extends PressableStateCallbackType with `hovered` and `focused`.
+type PressableState = { pressed: boolean; hovered?: boolean; focused?: boolean };
 
 export function Card({
   children,
@@ -27,13 +30,19 @@ export function Card({
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        style={({ pressed }) => [
-          styles.card,
-          shadowStyle,
-          { padding },
-          style,
-          pressed && styles.pressed,
-        ]}
+        style={((state: PressableState) => {
+          const hovered = state.hovered === true;
+          const pressed = state.pressed;
+
+          return [
+            styles.card,
+            shadowStyle,
+            { padding },
+            style,
+            hovered && !pressed && styles.hovered,
+            pressed && styles.pressed,
+          ];
+        }) as any}
       >
         {children}
       </Pressable>
@@ -54,8 +63,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  pressed: {
-    opacity: 0.92,
+  hovered: {
     backgroundColor: colors.surfaceAlt,
+    borderColor: colors.primary,
+  },
+  pressed: {
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.primary,
+    opacity: 0.9,
   },
 });

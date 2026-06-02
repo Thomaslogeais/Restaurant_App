@@ -20,8 +20,11 @@ import {
   type UpdateMenuItem200,
 } from '@restaurant/api-client';
 import { RESTAURANT_ID } from '../constants';
-import { MenuItemCard } from '../components/MenuItemCard';
-import { AddEditMenuItemModal } from '../components/AddEditMenuItemModal';
+import { MenuItemCard } from '../_components/MenuItemCard';
+import { AddEditMenuItemModal } from '../_components/AddEditMenuItemModal';
+
+// React Native Web extends Pressable state with `hovered` and `focused`.
+type PressableState = { pressed: boolean; hovered?: boolean; focused?: boolean };
 
 export default function MenuScreen() {
   const qc = useQueryClient();
@@ -96,11 +99,23 @@ export default function MenuScreen() {
                   onPress={() => setSelectedCategoryId(cat.id)}
                   accessibilityRole="tab"
                   accessibilityState={{ selected: active }}
-                  style={({ pressed }) => [
-                    styles.catTab,
-                    active && styles.catTabActive,
-                    pressed && !active && styles.catTabPressed,
-                  ]}
+                  style={((state: PressableState) => {
+                    const hovered = state.hovered === true;
+                    const pressed = state.pressed;
+
+                    if (active) {
+                      return [
+                        styles.catTab,
+                        styles.catTabActive,
+                        (hovered || pressed) && styles.catTabActiveHovered,
+                      ];
+                    }
+                    return [
+                      styles.catTab,
+                      hovered && styles.catTabHovered,
+                      pressed && styles.catTabPressed,
+                    ];
+                  }) as any}
                 >
                   <Text style={[styles.catLabel, active && styles.catLabelActive]}>
                     {cat.name}
@@ -121,7 +136,11 @@ export default function MenuScreen() {
           onPress={() => { setEditItem(undefined); setShowItemModal(true); }}
           accessibilityRole="button"
           accessibilityLabel="Add menu item"
-          style={({ pressed }) => [styles.addBtn, pressed && styles.addBtnPressed]}
+          style={((state: PressableState) => [
+            styles.addBtn,
+            state.hovered === true && styles.addBtnHovered,
+            state.pressed && styles.addBtnPressed,
+          ]) as any}
         >
           <Text style={styles.addBtnText}>+ Add Item</Text>
         </Pressable>
@@ -185,8 +204,21 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  catTabActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  catTabPressed: { backgroundColor: colors.surfaceAlt },
+  catTabHovered: {
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.accent,
+  },
+  catTabPressed: {
+    backgroundColor: colors.surfaceAlt,
+    opacity: 0.85,
+  },
+  catTabActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  catTabActiveHovered: {
+    opacity: 0.85,
+  },
   catLabel: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
@@ -214,7 +246,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[1.5],
     borderRadius: radius.md,
   },
-  addBtnPressed: { opacity: 0.8 },
+  addBtnHovered: { opacity: 0.88 },
+  addBtnPressed: { opacity: 0.75 },
   addBtnText: {
     color: colors.textInverse,
     fontSize: fontSize.sm,

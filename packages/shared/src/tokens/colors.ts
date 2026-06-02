@@ -52,7 +52,9 @@ const palette = {
 
   purple500: '#8b5cf6',
   purple600: '#7c3aed',
+  purple700: '#6d28d9',
   purple100: '#ede9fe',
+  purple50:  '#f5f3ff',
 
   teal500: '#14b8a6',
   teal100: '#ccfbf1',
@@ -63,15 +65,15 @@ const palette = {
 // ---------------------------------------------------------------------------
 export const colors = {
   // Brand
-  primary: palette.navy800,
-  primaryDark: palette.navy900,
-  primaryLight: palette.navy700,
+  primary: palette.purple600,
+  primaryDark: palette.purple700,
+  primaryLight: palette.purple500,
   accent: palette.coral500,
   accentDark: palette.coral600,
   accentLight: palette.coral400,
 
   // Surfaces
-  background: palette.gray50,
+  background: palette.purple50,
   surface: palette.white,
   surfaceAlt: palette.gray100,
   surfaceElevated: palette.white,

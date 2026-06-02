@@ -14,10 +14,10 @@ import {
   type ListOrdersStatus,
 } from '@restaurant/api-client';
 import { RESTAURANT_ID } from '../constants';
-import { FilterTabs } from '../components/FilterTabs';
-import { OrderCard } from '../components/OrderCard';
-import { OrderDetailModal } from '../components/OrderDetailModal';
-import { CreateOrderModal } from '../components/CreateOrderModal';
+import { FilterTabs } from '../_components/FilterTabs';
+import { OrderCard } from '../_components/OrderCard';
+import { OrderDetailModal } from '../_components/OrderDetailModal';
+import { CreateOrderModal } from '../_components/CreateOrderModal';
 
 type FilterValue = ListOrdersStatus | 'all';
 

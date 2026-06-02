@@ -1,6 +1,7 @@
 export * from './Button';
 export * from './Card';
 export * from './Badge';
+export * from './DataList';
 export * from './Input';
 export * from './Select';
 export * from './Modal';
