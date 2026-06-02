@@ -8,12 +8,12 @@
 // ---------------------------------------------------------------------------
 
 /**
- * Format a numeric amount as a pound-sterling currency string.
- * @example formatCurrency(12.5) → '£12.50'
+ * Format a numeric amount as a euro currency string.
+ * @example formatCurrency(12.5) → '€12.50'
  */
 export function formatCurrency(amount: number): string {
-  if (!isFinite(amount)) return '£0.00';
-  return `£${Math.abs(amount).toFixed(2)}`;
+  if (!isFinite(amount)) return '€0.00';
+  return `€${Math.abs(amount).toFixed(2)}`;
 }
 
 // ---------------------------------------------------------------------------

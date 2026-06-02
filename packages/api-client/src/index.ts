@@ -18,5 +18,7 @@ export * from './generated/customers/customers';
 export * from './generated/settings/settings';
 export * from './generated/stats/stats';
 
-// Mutator error type — useful for hook error boundaries
+// Low-level HTTP mutator — exported for path-param endpoints (Orval code-gen limitation)
+// See: packages/api-client/src/lib/custom-instance.ts
+export { customInstance } from './lib/custom-instance';
 export type { ErrorType } from './lib/custom-instance';

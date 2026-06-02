@@ -41,8 +41,9 @@ export function Modal({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      {/* Backdrop */}
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button">
+      {/* Backdrop — use no accessibilityRole so RN Web renders a <div>, not a
+          <button>. A nested <button> inside a <button> is invalid HTML. */}
+      <Pressable style={styles.backdrop} onPress={onClose}>
         {/* Stop propagation so taps inside the sheet don't close the modal */}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
