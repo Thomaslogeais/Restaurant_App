@@ -1,0 +1,13 @@
+name = "restaurant-backend"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 8787
+local_protocol = "http"
+
+# Secrets — set these in .dev.vars for local development (never commit .dev.vars)
+# DATABASE_URL = "postgresql://..."
+# Example .dev.vars:
+# DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/restaurant?sslmode=require
