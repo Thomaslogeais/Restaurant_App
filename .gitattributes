@@ -1,0 +1,5 @@
+# Mark Orval-generated API client files as generated.
+# GitHub will collapse these in PR diffs and exclude them from linguist stats.
+# ⚠️  Never hand-edit files in packages/api-client/src/generated/
+packages/api-client/src/generated/** linguist-generated=true
+packages/api-client/src/generated/** -diff
