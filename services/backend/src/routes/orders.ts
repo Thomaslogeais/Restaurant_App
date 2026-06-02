@@ -27,6 +27,7 @@ ordersRouter.openapi(
   createRoute({
     method: 'get',
     path: '/orders',
+    operationId: 'listOrders',
     tags: ['orders'],
     summary: 'List orders (filterable by status and customer)',
     request: {
@@ -67,6 +68,7 @@ ordersRouter.openapi(
   createRoute({
     method: 'post',
     path: '/orders',
+    operationId: 'createOrder',
     tags: ['orders'],
     summary: 'Create a new order',
     description: [
@@ -243,6 +245,7 @@ ordersRouter.openapi(
   createRoute({
     method: 'get',
     path: '/orders/:id',
+    operationId: 'getOrder',
     tags: ['orders'],
     summary: 'Get order detail with items and customer',
     request: {
@@ -328,6 +331,7 @@ ordersRouter.openapi(
   createRoute({
     method: 'post',
     path: '/orders/:id/actions',
+    operationId: 'applyOrderAction',
     tags: ['orders'],
     summary: 'Transition order status via a named action',
     description: [

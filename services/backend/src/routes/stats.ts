@@ -29,6 +29,7 @@ statsRouter.openapi(
   createRoute({
     method: 'get',
     path: '/stats/:restaurantId',
+    operationId: 'getStats',
     tags: ['stats'],
     summary: 'Home screen KPIs for a restaurant',
     description: [

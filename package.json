@@ -5,7 +5,7 @@
   "scripts": {
     "dev:dashboard": "turbo run dev --filter=@restaurant/dashboard",
     "dev:backend": "turbo run dev --filter=@restaurant/backend",
-    "gen:contract": "turbo run codegen --filter=@restaurant/api-client",
+    "gen:contract": "curl -f -s http://localhost:8787/openapi.json -o services/backend/openapi.json && turbo run codegen --filter=@restaurant/api-client",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",

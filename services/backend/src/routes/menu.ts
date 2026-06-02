@@ -27,6 +27,7 @@ menuRouter.openapi(
   createRoute({
     method: 'get',
     path: '/menu-categories',
+    operationId: 'listMenuCategories',
     tags: ['menu'],
     summary: 'List menu categories for a restaurant',
     request: { query: restaurantQuery },
@@ -56,6 +57,7 @@ menuRouter.openapi(
   createRoute({
     method: 'post',
     path: '/menu-categories',
+    operationId: 'createMenuCategory',
     tags: ['menu'],
     summary: 'Create a menu category',
     request: {
@@ -87,6 +89,7 @@ menuRouter.openapi(
   createRoute({
     method: 'patch',
     path: '/menu-categories/:id',
+    operationId: 'updateMenuCategory',
     tags: ['menu'],
     summary: 'Update a menu category',
     request: {
@@ -134,6 +137,7 @@ menuRouter.openapi(
   createRoute({
     method: 'get',
     path: '/menu-items',
+    operationId: 'listMenuItems',
     tags: ['menu'],
     summary: 'List menu items for a restaurant',
     request: {
@@ -174,6 +178,7 @@ menuRouter.openapi(
   createRoute({
     method: 'post',
     path: '/menu-items',
+    operationId: 'createMenuItem',
     tags: ['menu'],
     summary: 'Create a menu item',
     request: {
@@ -218,6 +223,7 @@ menuRouter.openapi(
   createRoute({
     method: 'patch',
     path: '/menu-items/:id',
+    operationId: 'updateMenuItem',
     tags: ['menu'],
     summary: 'Update a menu item (name, price, availability, etc.)',
     request: {

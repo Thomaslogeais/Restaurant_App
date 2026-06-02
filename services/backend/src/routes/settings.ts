@@ -18,6 +18,7 @@ settingsRouter.openapi(
   createRoute({
     method: 'get',
     path: '/settings/:restaurantId',
+    operationId: 'getSettings',
     tags: ['settings'],
     summary: 'Get ordering settings for a restaurant',
     request: {
@@ -57,6 +58,7 @@ settingsRouter.openapi(
   createRoute({
     method: 'patch',
     path: '/settings/:restaurantId',
+    operationId: 'updateSettings',
     tags: ['settings'],
     summary: 'Update ordering settings',
     request: {
