@@ -195,13 +195,17 @@ ordersRouter.openapi(
       }
     }
 
-    // 7. Insert the order
+    // 7. Insert the order — honour the autoAccept setting:
+    //    if enabled, the order skips 'pending' and lands directly in 'accepted',
+    //    so staff never have to manually accept it.
+    const initialStatus = settings?.autoAccept ? 'accepted' : 'pending';
+
     const [order] = await db
       .insert(table.orders)
       .values({
         restaurantId,
         customerId: customerId ?? null,
-        status: 'pending',
+        status: initialStatus,
         totalAmount,
         notes: notes ?? null,
       })

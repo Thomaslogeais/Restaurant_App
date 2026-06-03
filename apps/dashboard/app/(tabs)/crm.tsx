@@ -170,8 +170,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 // Create customer modal (inline — no separate file needed)
 // ---------------------------------------------------------------------------
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Same regex as the backend (zod-schemas.ts) — 7-20 chars, digits/spaces/hyphens/parens, optional leading +
+const PHONE_RE = /^\+?[\d\s\-\(\)]{7,20}$/;
 
-type CustomerFormErrors = { name?: string; email?: string };
+type CustomerFormErrors = { name?: string; email?: string; phone?: string };
 
 function CreateCustomerModal({
   visible,
@@ -207,6 +209,9 @@ function CreateCustomerModal({
     } else if (!EMAIL_RE.test(email.trim())) {
       errs.email = 'Enter a valid email address';
     }
+    if (phone.trim() && !PHONE_RE.test(phone.trim())) {
+      errs.phone = 'Enter a valid phone number (e.g. +33 6 12 34 56 78)';
+    }
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     onSubmit({
@@ -240,8 +245,9 @@ function CreateCustomerModal({
           label="Phone (optional)"
           placeholder="+33 6 00 00 00 00"
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(v) => { setPhone(v); clearErr('phone'); }}
           keyboardType="phone-pad"
+          error={errors.phone}
         />
         <Button
           label={creating ? 'Creating…' : 'Add Customer'}

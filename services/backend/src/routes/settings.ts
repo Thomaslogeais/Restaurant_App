@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { createDb } from '../db/client';
 import * as table from '../db/schema';
 import {
@@ -92,6 +92,21 @@ settingsRouter.openapi(
       .returning();
 
     if (!row) return c.json(Errors.notFound('Settings'), 404);
+
+    // When auto-accept is explicitly switched ON, retroactively accept every
+    // existing pending order for this restaurant so the queue is clean immediately.
+    if (body.autoAccept === true) {
+      await db
+        .update(table.orders)
+        .set({ status: 'accepted', updatedAt: new Date() })
+        .where(
+          and(
+            eq(table.orders.restaurantId, restaurantId),
+            eq(table.orders.status, 'pending'),
+          ),
+        );
+    }
+
     return c.json(selectOrderingSettingsSchema.parse(row), 200);
   },
 );

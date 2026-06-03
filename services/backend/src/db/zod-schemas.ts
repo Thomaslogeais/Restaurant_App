@@ -95,7 +95,16 @@ export const selectCustomerSchema = createSelectSchema(customers, {
 export const insertCustomerSchema = createInsertSchema(customers, {
   name: (s) => s.min(1, 'Name is required'),
   email: (s) => s.email('A valid email address is required'),
-  phone: (s) => s.optional(),
+  // Phone is optional/nullable, but when provided must be a recognisable
+  // international number: 7–20 chars, digits + spaces + hyphens + parens + optional leading +
+  phone: (_s) =>
+    z
+      .string()
+      .regex(
+        /^\+?[\d\s\-\(\)]{7,20}$/,
+        'Enter a valid phone number (e.g. +33 6 12 34 56 78)',
+      )
+      .nullish(),
 }).omit({
   id: true,
   createdAt: true,
