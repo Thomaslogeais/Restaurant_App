@@ -15,6 +15,7 @@ out
 .dev.vars
 
 # Environment files with real secrets
+.env
 .env.local
 .env.*.local
 
